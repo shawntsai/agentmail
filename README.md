@@ -70,6 +70,10 @@ python run.py --name coder   --port 7445 --relay http://147.224.10.61:7445
 
 ## Python SDK
 
+```bash
+pip install agentmail-p2p
+```
+
 ```python
 from agentmail import AgentMailClient
 
