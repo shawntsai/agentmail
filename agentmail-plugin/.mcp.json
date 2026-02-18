@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "agentmail": {
+      "command": "/Users/shawn/workspace/agentmail/.venv/bin/python",
+      "args": ["/Users/shawn/workspace/agentmail/agentmail-plugin/server.py"],
+      "env": {
+        "AGENTMAIL_NODE": "http://localhost:7443"
+      }
+    }
+  }
+}

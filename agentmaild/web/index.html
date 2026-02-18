@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>AgentMail</title>
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #141414;
+    --surface2: #1e1e1e;
+    --border: #2a2a2a;
+    --text: #e0e0e0;
+    --text2: #888;
+    --accent: #4f9eff;
+    --accent2: #2d7ad6;
+    --green: #34d399;
+    --orange: #fb923c;
+    --red: #f87171;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100dvh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .app {
+    max-width: 600px;
+    margin: 0 auto;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Header */
+  .header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 10;
+  }
+
+  .header h1 {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+
+  .header .node-info {
+    font-size: 12px;
+    color: var(--text2);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    display: inline-block;
+  }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    padding: 0 20px;
+  }
+
+  .tab {
+    padding: 12px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text2);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+  }
+
+  .tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  .tab .badge {
+    background: var(--accent);
+    color: #fff;
+    font-size: 11px;
+    padding: 1px 6px;
+    border-radius: 10px;
+    margin-left: 6px;
+  }
+
+  /* Content */
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0;
+  }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* Message List */
+  .message-list { padding: 8px 0; }
+
+  .msg-item {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .msg-item:active { background: var(--surface2); }
+
+  .msg-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 4px;
+  }
+
+  .msg-from {
+    font-weight: 600;
+    font-size: 15px;
+  }
+
+  .msg-time {
+    font-size: 12px;
+    color: var(--text2);
+    flex-shrink: 0;
+  }
+
+  .msg-subject {
+    font-size: 14px;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+
+  .msg-preview {
+    font-size: 13px;
+    color: var(--text2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .msg-badges {
+    display: flex;
+    gap: 6px;
+    margin-top: 6px;
+  }
+
+  .msg-badge {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+
+  .msg-badge.encrypted { background: #1a3a2a; color: var(--green); }
+  .msg-badge.signed { background: #2a2a1a; color: var(--orange); }
+  .msg-badge.queued { background: #2a1a1a; color: var(--red); }
+
+  /* Empty state */
+  .empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text2);
+  }
+
+  .empty-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+    opacity: 0.3;
+  }
+
+  /* Compose */
+  .compose {
+    padding: 20px;
+  }
+
+  .field {
+    margin-bottom: 16px;
+  }
+
+  .field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+
+  .field input, .field textarea, .field select {
+    width: 100%;
+    padding: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 15px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .field input:focus, .field textarea:focus {
+    border-color: var(--accent);
+  }
+
+  .field textarea {
+    min-height: 120px;
+    resize: vertical;
+  }
+
+  .send-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .send-btn:active { background: var(--accent2); }
+  .send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .send-status {
+    text-align: center;
+    margin-top: 12px;
+    font-size: 14px;
+  }
+
+  .send-status.ok { color: var(--green); }
+  .send-status.err { color: var(--red); }
+
+  /* Peers */
+  .peer-list { padding: 8px 0; }
+
+  .peer-item {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .peer-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--surface2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+
+  .peer-details { flex: 1; }
+  .peer-name { font-weight: 600; font-size: 15px; }
+  .peer-addr { font-size: 13px; color: var(--text2); }
+  .peer-endpoint { font-size: 12px; color: var(--text2); font-family: 'SF Mono', monospace; }
+  .peer-seen { font-size: 12px; color: var(--text2); }
+
+  /* Identity */
+  .identity-card {
+    margin: 20px;
+    padding: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+
+  .identity-card h3 {
+    font-size: 14px;
+    color: var(--text2);
+    margin-bottom: 12px;
+  }
+
+  .identity-field {
+    margin-bottom: 12px;
+  }
+
+  .identity-field .label {
+    font-size: 11px;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+  }
+
+  .identity-field .value {
+    font-size: 14px;
+    font-family: 'SF Mono', 'Menlo', monospace;
+    word-break: break-all;
+  }
+
+  .identity-field .value.large {
+    font-size: 18px;
+    font-weight: 700;
+    font-family: inherit;
+    word-break: normal;
+  }
+
+  /* Refresh indicator */
+  .refreshing {
+    text-align: center;
+    padding: 8px;
+    font-size: 12px;
+    color: var(--text2);
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <h1>AgentMail</h1>
+    <div class="node-info">
+      <span class="status-dot"></span>
+      <span id="header-node-name">connecting...</span>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="inbox">Inbox <span class="badge" id="inbox-count" style="display:none">0</span></div>
+    <div class="tab" data-tab="sent">Sent</div>
+    <div class="tab" data-tab="compose">Compose</div>
+    <div class="tab" data-tab="peers">Peers</div>
+    <div class="tab" data-tab="identity">Node</div>
+  </div>
+
+  <div class="content">
+    <!-- Inbox -->
+    <div class="panel active" id="panel-inbox">
+      <div class="message-list" id="inbox-list"></div>
+    </div>
+
+    <!-- Sent -->
+    <div class="panel" id="panel-sent">
+      <div class="message-list" id="sent-list"></div>
+    </div>
+
+    <!-- Compose -->
+    <div class="panel" id="panel-compose">
+      <div class="compose">
+        <div class="field">
+          <label>To</label>
+          <select id="compose-to">
+            <option value="">Select a peer or type address...</option>
+          </select>
+        </div>
+        <div class="field" id="custom-to-field" style="display:none">
+          <label>Custom Address</label>
+          <input type="text" id="compose-to-custom" placeholder="name@name.local">
+        </div>
+        <div class="field">
+          <label>Subject</label>
+          <input type="text" id="compose-subject" placeholder="Subject">
+        </div>
+        <div class="field">
+          <label>Message</label>
+          <textarea id="compose-body" placeholder="Type your message..."></textarea>
+        </div>
+        <button class="send-btn" id="send-btn" onclick="sendMessage()">Send Message</button>
+        <div class="send-status" id="send-status"></div>
+      </div>
+    </div>
+
+    <!-- Peers -->
+    <div class="panel" id="panel-peers">
+      <div class="peer-list" id="peer-list"></div>
+    </div>
+
+    <!-- Identity -->
+    <div class="panel" id="panel-identity">
+      <div class="identity-card" id="identity-card"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = window.location.origin;
+let currentTab = 'inbox';
+let identity = null;
+
+// Tab switching
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+    currentTab = tab.dataset.tab;
+    refresh();
+  });
+});
+
+async function api(path, opts) {
+  const resp = await fetch(API + path, opts);
+  return resp.json();
+}
+
+function timeAgo(iso) {
+  const d = new Date(iso);
+  const now = new Date();
+  const sec = Math.floor((now - d) / 1000);
+  if (sec < 60) return 'just now';
+  if (sec < 3600) return Math.floor(sec / 60) + 'm ago';
+  if (sec < 86400) return Math.floor(sec / 3600) + 'h ago';
+  return d.toLocaleDateString();
+}
+
+function renderMessages(messages, containerId, emptyText) {
+  const el = document.getElementById(containerId);
+  if (!messages.length) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">&#9993;</div><div>${emptyText}</div></div>`;
+    return;
+  }
+  el.innerHTML = messages.map(m => {
+    const badges = [];
+    if (m.encrypted) badges.push('<span class="msg-badge encrypted">encrypted</span>');
+    if (m.status === 'queued') badges.push('<span class="msg-badge queued">queued</span>');
+    const other = containerId === 'inbox-list' ? m.from_addr : m.to_addr;
+    return `
+      <div class="msg-item">
+        <div class="msg-row">
+          <span class="msg-from">${esc(other)}</span>
+          <span class="msg-time">${timeAgo(m.sent_at)}</span>
+        </div>
+        ${m.subject ? `<div class="msg-subject">${esc(m.subject)}</div>` : ''}
+        <div class="msg-preview">${esc(m.body || '').substring(0, 120)}</div>
+        ${badges.length ? `<div class="msg-badges">${badges.join('')}</div>` : ''}
+      </div>`;
+  }).join('');
+}
+
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s || '';
+  return d.innerHTML;
+}
+
+async function loadInbox() {
+  const msgs = await api('/v0/messages?direction=inbound');
+  renderMessages(msgs, 'inbox-list', 'No messages yet.<br>Waiting for peers...');
+  const badge = document.getElementById('inbox-count');
+  if (msgs.length > 0) {
+    badge.textContent = msgs.length;
+    badge.style.display = 'inline';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+async function loadSent() {
+  const msgs = await api('/v0/messages?direction=outbound');
+  renderMessages(msgs, 'sent-list', 'No sent messages yet.');
+}
+
+async function loadPeers() {
+  const peers = await api('/v0/peers');
+  const el = document.getElementById('peer-list');
+  if (!peers.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">&#128269;</div><div>No peers found on LAN.<br>Start another node to see it here.</div></div>';
+    return;
+  }
+  el.innerHTML = peers.map(p => `
+    <div class="peer-item">
+      <div class="peer-avatar">${esc(p.node_name[0].toUpperCase())}</div>
+      <div class="peer-details">
+        <div class="peer-name">${esc(p.node_name)}</div>
+        <div class="peer-addr">${esc(p.address)}</div>
+        <div class="peer-endpoint">${esc(p.host)}:${p.port}</div>
+      </div>
+      <div class="peer-seen">${timeAgo(p.last_seen)}</div>
+    </div>
+  `).join('');
+
+  // Update compose dropdown
+  const sel = document.getElementById('compose-to');
+  const current = sel.value;
+  sel.innerHTML = '<option value="">Select a peer...</option>' +
+    peers.map(p => `<option value="${esc(p.address)}">${esc(p.node_name)} (${esc(p.address)})</option>`).join('') +
+    '<option value="__custom__">Custom address...</option>';
+  sel.value = current;
+}
+
+document.getElementById('compose-to').addEventListener('change', (e) => {
+  const custom = document.getElementById('custom-to-field');
+  custom.style.display = e.target.value === '__custom__' ? 'block' : 'none';
+});
+
+async function loadIdentity() {
+  if (!identity) identity = await api('/v0/identity');
+  document.getElementById('header-node-name') .textContent = identity.node_name;
+  document.getElementById('identity-card').innerHTML = `
+    <h3>This Node</h3>
+    <div class="identity-field">
+      <div class="label">Name</div>
+      <div class="value large">${esc(identity.node_name)}</div>
+    </div>
+    <div class="identity-field">
+      <div class="label">Address</div>
+      <div class="value">${esc(identity.address)}</div>
+    </div>
+    <div class="identity-field">
+      <div class="label">Fingerprint</div>
+      <div class="value">${esc(identity.fingerprint)}</div>
+    </div>
+    <div class="identity-field">
+      <div class="label">Public Key</div>
+      <div class="value" style="font-size:11px">${esc(identity.pubkey)}</div>
+    </div>
+    <div class="identity-field">
+      <div class="label">Encryption Key</div>
+      <div class="value" style="font-size:11px">${esc(identity.encrypt_pubkey)}</div>
+    </div>
+  `;
+}
+
+async function sendMessage() {
+  const btn = document.getElementById('send-btn');
+  const status = document.getElementById('send-status');
+  let to = document.getElementById('compose-to').value;
+  if (to === '__custom__') to = document.getElementById('compose-to-custom').value;
+  const subject = document.getElementById('compose-subject').value;
+  const body = document.getElementById('compose-body').value;
+
+  if (!to || !body) {
+    status.className = 'send-status err';
+    status.textContent = 'Please fill in recipient and message.';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
+  status.textContent = '';
+
+  try {
+    const res = await api('/v0/send', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ to, subject, body, intent: 'human_message', encrypt: true })
+    });
+
+    if (res.status === 'ok') {
+      status.className = 'send-status ok';
+      status.textContent = res.delivered ? 'Delivered!' : 'Queued (peer offline — will retry)';
+      document.getElementById('compose-subject').value = '';
+      document.getElementById('compose-body').value = '';
+    } else {
+      status.className = 'send-status err';
+      status.textContent = 'Failed to send.';
+    }
+  } catch (e) {
+    status.className = 'send-status err';
+    status.textContent = 'Error: ' + e.message;
+  }
+  btn.disabled = false;
+  btn.textContent = 'Send Message';
+}
+
+async function refresh() {
+  try {
+    await loadIdentity();
+    await loadPeers();
+    if (currentTab === 'inbox') await loadInbox();
+    if (currentTab === 'sent') await loadSent();
+  } catch (e) {
+    console.error('Refresh error:', e);
+  }
+}
+
+// Initial load + auto-refresh
+refresh();
+setInterval(refresh, 5000);
+</script>
+</body>
+</html>

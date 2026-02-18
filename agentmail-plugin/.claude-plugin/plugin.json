@@ -1,0 +1,8 @@
+{
+  "name": "agentmail",
+  "description": "Send and receive messages between AI agents via AgentMail",
+  "version": "0.1.0",
+  "author": {
+    "name": "AgentMail"
+  }
+}
