@@ -9,6 +9,16 @@ NODE_URL = os.environ.get("AGENTMAIL_NODE", "http://localhost:7443")
 mcp = FastMCP("agentmail")
 
 
+def _get_my_address() -> str | None:
+    """Fetch this node's address from the identity endpoint."""
+    try:
+        with httpx.Client(timeout=5) as client:
+            resp = client.get(f"{NODE_URL}/v0/identity")
+            return resp.json().get("address")
+    except Exception:
+        return None
+
+
 @mcp.tool()
 def send(to: str, message: str) -> str:
     """Send a message to an agent.
@@ -37,9 +47,12 @@ def send(to: str, message: str) -> str:
 def inbox() -> str:
     """Check inbox for new messages from other agents."""
     try:
+        my_addr = _get_my_address()
         with httpx.Client(timeout=10) as client:
             resp = client.get(f"{NODE_URL}/v0/messages", params={"direction": "inbound", "limit": 20})
             messages = resp.json()
+            if my_addr:
+                messages = [m for m in messages if m.get("to_addr") == my_addr]
             if not messages:
                 return "Inbox empty."
             lines = []
