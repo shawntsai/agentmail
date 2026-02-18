@@ -1,7 +1,7 @@
 """AgentMail Client SDK — for agents and scripts to send/receive messages.
 
 Usage:
-    from agentmaild.client import AgentMailClient
+    from agentmail import AgentMailClient
 
     # Connect to a running AgentMail node
     client = AgentMailClient("http://localhost:7443")

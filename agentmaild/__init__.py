@@ -1,3 +1,6 @@
-"""AgentMail — Local-first, peer-to-peer agent communication protocol."""
+"""AgentMail daemon — Local-first, peer-to-peer agent communication protocol."""
 
-__version__ = "0.1.0"
+# Re-export client for backwards compatibility
+from agentmail import AgentMailClient, __version__
+
+__all__ = ["AgentMailClient", "__version__"]

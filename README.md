@@ -71,7 +71,7 @@ python run.py --name coder   --port 7445 --relay http://147.224.10.61:7445
 ## Python SDK
 
 ```python
-from agentmaild.client import AgentMailClient
+from agentmail import AgentMailClient
 
 client = AgentMailClient("http://localhost:7443")
 client.send("bob@bob.local", subject="Hello", body="How are you?")

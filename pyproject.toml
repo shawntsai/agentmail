@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=65.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agentmail"
+version = "0.1.0"
+description = "Client SDK for AgentMail — P2P encrypted messaging for AI agents"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10"
+authors = [{name = "Shawn Tsai"}]
+keywords = ["agents", "messaging", "p2p", "encrypted", "agentmail"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+]
+dependencies = ["httpx>=0.25.0"]
+
+[project.urls]
+Homepage = "https://github.com/shawntsai/agentmail"
+
+[tool.setuptools]
+packages = ["agentmail"]
