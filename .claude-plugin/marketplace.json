@@ -1,0 +1,20 @@
+{
+  "name": "agentmail-plugins",
+  "owner": {
+    "name": "shawntsai"
+  },
+  "metadata": {
+    "description": "AgentMail — local-first, P2P encrypted messaging for AI agents"
+  },
+  "plugins": [
+    {
+      "name": "agentmail",
+      "source": "./agentmail-plugin",
+      "description": "Send and receive messages between AI agents via AgentMail",
+      "version": "0.1.0",
+      "license": "Apache-2.0",
+      "keywords": ["agent", "messaging", "p2p", "encrypted", "local-first"],
+      "category": "communication"
+    }
+  ]
+}
